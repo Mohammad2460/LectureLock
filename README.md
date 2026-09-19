@@ -74,9 +74,11 @@ self-signed certificate once:
 watch. It still appears while you hold `esc`, so the emergency hold always shows
 its progress. Turn it on in the panel if you want the timer visible.
 
-**Dry run** runs the entire session — watchdog, HUD, Escape hold, session log —
-but forwards every event instead of blocking it. Use it to test changes without
-locking yourself out.
+**Dry run** is a Debug-build-only checkbox: it runs the entire session —
+watchdog, HUD, Escape hold, session log — but forwards every event instead of
+blocking it, so you can work on the release paths without locking yourself out.
+Release builds have no such switch, so an installed copy can never be left in a
+state where it silently blocks nothing.
 
 ### Ways a session ends
 

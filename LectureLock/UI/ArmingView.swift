@@ -23,6 +23,15 @@ struct ArmingView: View {
     @State private var loginItemError: String?
 
     private var whitelist: Whitelist { Whitelist(rawValue: whitelistRaw) ?? .jkl }
+
+    /// Release builds never dry-run, whatever is stored in preferences.
+    private var effectiveDryRun: Bool {
+        #if DEBUG
+        dryRun
+        #else
+        false
+        #endif
+    }
     private var duration: SessionDuration { SessionDuration(minutes: durationMinutes) }
 
     private var isReady: Bool {
@@ -142,11 +151,17 @@ struct ArmingView: View {
                 Text("Off: the HUD appears only while you hold esc.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                #if DEBUG
+                // Development only: runs the whole session but forwards every event,
+                // so the release paths can be exercised without locking the machine.
+                // Deliberately absent from release builds, where a stale tick would
+                // silently stop the app from blocking anything.
                 Toggle(isOn: $dryRun) {
                     Text("Dry run (evaluate, don't block)")
                 }
                 .toggleStyle(.checkbox)
                 .font(.callout)
+                #endif
             }
 
             Toggle(isOn: Binding(
@@ -182,7 +197,7 @@ struct ArmingView: View {
                         whitelist: whitelist,
                         allowVolumeKeys: allowVolumeKeys,
                         showHUD: showHUD,
-                        dryRun: dryRun
+                        dryRun: effectiveDryRun
                     )
                     dismiss()
                 }
