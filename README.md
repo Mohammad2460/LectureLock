@@ -36,7 +36,7 @@ and no DMG: this is a single-user tool that needs Accessibility permission, so
 you build it yourself and keep it in `/Applications`.
 
 ```sh
-git clone https://github.com/YOURNAME/LectureLock.git
+git clone https://github.com/Mohammad2460/LectureLock.git
 cd LectureLock
 ./scripts/install.sh "LectureLock Dev"   # identity optional, see below
 ```
