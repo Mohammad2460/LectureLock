@@ -64,6 +64,7 @@ final class ArmingPanelController {
     func show(relativeTo statusButton: NSStatusBarButton?) {
         controller.permission.startMonitoring()
         browser.startMonitoring()
+        controller.refreshStats()
         position(relativeTo: statusButton)
         panel.orderFrontRegardless()
         panel.makeKey()

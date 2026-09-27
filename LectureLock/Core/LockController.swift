@@ -37,6 +37,7 @@ final class LockController: ObservableObject {
     @Published private(set) var state: LockState = .idle
     @Published private(set) var lastError: String?
     @Published private(set) var hud = HUDSnapshot()
+    @Published private(set) var stats = SessionStats()
 
     let permission = AccessibilityPermission()
 
@@ -49,6 +50,7 @@ final class LockController: ObservableObject {
     var isDryRun: Bool { session?.dryRun ?? false }
 
     init() {
+        refreshStats()
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,
             object: nil,
@@ -186,6 +188,7 @@ final class LockController: ObservableObject {
         ))
 
         self.session = nil
+        refreshStats()
         // Surface unexpected endings, so an early release is never silent.
         switch reason {
         case .tapTimeout:
@@ -202,6 +205,15 @@ final class LockController: ObservableObject {
     func terminate(reason: ReleaseReason) {
         state = .terminating
         release(reason)
+    }
+
+    // MARK: - Stats
+
+    /// Re-reads the session log. Cheap (a few KB); called at launch, after every
+    /// release and when the panel opens, so "today" follows the calendar.
+    func refreshStats() {
+        let fresh = SessionStats.compute(records: log.readAll(), now: Date(), calendar: .current)
+        if fresh != stats { stats = fresh }
     }
 
     // MARK: - Sleep / wake

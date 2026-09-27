@@ -51,4 +51,19 @@ struct SessionLog {
             NSLog("LectureLock: could not write session log: \(error.localizedDescription)")
         }
     }
+
+    /// Every record in the log. A missing file is an empty log.
+    func readAll() -> [SessionRecord] {
+        guard let data = try? Data(contentsOf: Self.fileURL) else { return [] }
+        return Self.parse(data)
+    }
+
+    /// One record per line; blank or corrupt lines (e.g. a write cut short) are skipped.
+    nonisolated static func parse(_ data: Data) -> [SessionRecord] {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return data.split(separator: 0x0A).compactMap { line in
+            try? decoder.decode(SessionRecord.self, from: Data(line))
+        }
+    }
 }

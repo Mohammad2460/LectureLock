@@ -76,6 +76,11 @@ struct ArmingView: View {
 
     private var armingSection: some View {
         VStack(alignment: .leading, spacing: 14) {
+            if controller.stats.hasSessions {
+                StatsView(stats: controller.stats)
+                Divider()
+            }
+
             VStack(alignment: .leading, spacing: 6) {
                 Text("Duration")
                     .font(.subheadline.weight(.semibold))
@@ -209,6 +214,7 @@ struct ArmingView: View {
         .onAppear {
             clickedVideo = false
             loginItem.refresh()
+            controller.refreshStats()
         }
     }
 
