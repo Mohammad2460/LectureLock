@@ -10,6 +10,7 @@ struct ArmingView: View {
     @ObservedObject var permission: AccessibilityPermission
     @ObservedObject var browser: BrowserDetector
     @ObservedObject var loginItem: LoginItem
+    @ObservedObject var notifier: SessionEndNotifier
     let dismiss: () -> Void
 
     @AppStorage("durationMinutes") private var durationMinutes = 45
@@ -17,6 +18,7 @@ struct ArmingView: View {
     @AppStorage("dryRun") private var dryRun = false
     @AppStorage("allowVolumeKeys") private var allowVolumeKeys = true
     @AppStorage("showHUD") private var showHUD = false
+    @AppStorage("notifyOnEnd") private var notifyOnEnd = true
 
     @State private var customText = ""
     @State private var clickedVideo = false
@@ -76,6 +78,11 @@ struct ArmingView: View {
 
     private var armingSection: some View {
         VStack(alignment: .leading, spacing: 14) {
+            if controller.stats.hasSessions {
+                StatsView(stats: controller.stats)
+                Divider()
+            }
+
             VStack(alignment: .leading, spacing: 6) {
                 Text("Duration")
                     .font(.subheadline.weight(.semibold))
@@ -151,6 +158,24 @@ struct ArmingView: View {
                 Text("Off: the HUD appears only while you hold esc.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Toggle(isOn: $notifyOnEnd) {
+                    Text("Sound + notification when the lock ends")
+                }
+                .toggleStyle(.checkbox)
+                .font(.callout)
+                .onChange(of: notifyOnEnd) { enabled in
+                    if enabled { notifier.requestAuthorizationIfNeeded() }
+                }
+                if notifyOnEnd && notifier.isDenied {
+                    HStack(spacing: 6) {
+                        Text("Notifications are off; only the sound will play.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button("Settings") { notifier.openSystemSettings() }
+                            .buttonStyle(.link)
+                            .font(.caption)
+                    }
+                }
                 #if DEBUG
                 // Development only: runs the whole session but forwards every event,
                 // so the release paths can be exercised without locking the machine.
@@ -197,6 +222,7 @@ struct ArmingView: View {
                         whitelist: whitelist,
                         allowVolumeKeys: allowVolumeKeys,
                         showHUD: showHUD,
+                        notifyOnEnd: notifyOnEnd,
                         dryRun: effectiveDryRun
                     )
                     dismiss()
@@ -209,6 +235,8 @@ struct ArmingView: View {
         .onAppear {
             clickedVideo = false
             loginItem.refresh()
+            controller.refreshStats()
+            if notifyOnEnd { notifier.requestAuthorizationIfNeeded() }
         }
     }
 
