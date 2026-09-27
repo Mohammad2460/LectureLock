@@ -74,6 +74,16 @@ self-signed certificate once:
 watch. It still appears while you hold `esc`, so the emergency hold always shows
 its progress. Turn it on in the panel if you want the timer visible.
 
+**When a lock ends** you hear a short sound and get a notification saying why
+("45 min done", "ended early (esc held)", …). Untick *Sound + notification when
+the lock ends* to turn it off. If macOS notifications are off for LectureLock,
+only the sound plays.
+
+**Stats** sit at the top of the panel once you have a session: locked time today,
+this week and all time, sessions this week, your day streak (a day counts with
+at least one session of a minute or more) and how many ended early. They are
+computed from the local session log; dry runs never count.
+
 **Dry run** is a Debug-build-only checkbox: it runs the entire session —
 watchdog, HUD, Escape hold, session log — but forwards every event instead of
 blocking it, so you can work on the release paths without locking yourself out.

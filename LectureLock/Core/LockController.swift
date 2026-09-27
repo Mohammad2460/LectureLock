@@ -31,6 +31,7 @@ final class LockController: ObservableObject {
         let whitelist: Whitelist
         let allowVolumeKeys: Bool
         let showHUD: Bool
+        let notifyOnEnd: Bool
         let dryRun: Bool
     }
 
@@ -40,6 +41,7 @@ final class LockController: ObservableObject {
     @Published private(set) var stats = SessionStats()
 
     let permission = AccessibilityPermission()
+    let notifier = SessionEndNotifier()
 
     private var session: Session?
     private var hudTimer: Timer?
@@ -68,6 +70,7 @@ final class LockController: ObservableObject {
         whitelist: Whitelist,
         allowVolumeKeys: Bool,
         showHUD: Bool,
+        notifyOnEnd: Bool,
         dryRun: Bool
     ) {
         guard state == .idle else { return }
@@ -79,6 +82,7 @@ final class LockController: ObservableObject {
                 whitelist: whitelist,
                 allowVolumeKeys: allowVolumeKeys,
                 showHUD: showHUD,
+                notifyOnEnd: notifyOnEnd,
                 dryRun: dryRun
             )
         }
@@ -94,6 +98,7 @@ final class LockController: ObservableObject {
         whitelist: Whitelist,
         allowVolumeKeys: Bool,
         showHUD: Bool,
+        notifyOnEnd: Bool,
         dryRun: Bool
     ) {
         guard state == .arming else { return }
@@ -137,6 +142,7 @@ final class LockController: ObservableObject {
             whitelist: whitelist,
             allowVolumeKeys: allowVolumeKeys,
             showHUD: showHUD,
+            notifyOnEnd: notifyOnEnd,
             dryRun: dryRun
         )
 
@@ -177,15 +183,20 @@ final class LockController: ObservableObject {
         hud = HUDSnapshot()
 
         // 4. Log.
-        let actual = Int(Date().timeIntervalSince(session.start).rounded())
+        let actual = max(0, Int(Date().timeIntervalSince(session.start).rounded()))
         log.append(SessionRecord(
             start: session.start,
             plannedSeconds: session.duration.seconds,
-            actualSeconds: max(0, actual),
+            actualSeconds: actual,
             releaseMethod: reason,
             whitelist: session.whitelist.rawValue,
             dryRun: session.dryRun
         ))
+
+        // 5. Cue. Input is already back, so nothing here can hold up the release.
+        if session.notifyOnEnd {
+            notifier.sessionEnded(reason: reason, actualSeconds: actual, dryRun: session.dryRun)
+        }
 
         self.session = nil
         refreshStats()

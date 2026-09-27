@@ -46,6 +46,7 @@ final class ArmingPanelController {
             permission: controller.permission,
             browser: browser,
             loginItem: loginItem,
+            notifier: controller.notifier,
             dismiss: { [weak panel] in panel?.orderOut(nil) }
         )
         let hosting = NSHostingView(rootView: view)
